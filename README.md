@@ -1,6 +1,6 @@
 # MindRender: Generative AI-Powered Diagramming Tool
 
-MindRender is a generative AI-powered diagramming tool that brings your ideas to life—instantly and visually. Just describe your system, flow, or concept in plain English, and MindRender will transform it into a clean, structured diagram using formats like Mermaid or PlantUML.
+MindRender is a generative AI-powered diagramming tool that brings your ideas to life—instantly and visually. Just describe your system, flow, or concept in plain English, and MindRender will transform it into a clean, structured diagram using formats like Mermaid .
 
 No dragging. No manual drawing. Just type and render.
 
