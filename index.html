@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mermaid Live Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    window.mermaid = mermaid;
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      padding: 2rem 0 1rem 0;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: #1a2233;
+      letter-spacing: -1px;
+    }
+    header p {
+      color: #5a6a85;
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(30, 41, 59, 0.10);
+      padding: 2rem 2.5rem;
+      display: flex;
+      gap: 2.5rem;
+      margin-bottom: 2rem;
+      width: 90vw;
+      max-width: 1200px;
+      align-items: stretch;
+      min-height: 480px;
+      transition: min-height 0.3s;
+    }
+    .controls-panel {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      margin-top: -1rem;
+    }
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 0;
+    }
+    button {
+      padding: 0.6rem 1.3rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+      transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+    }
+    button:hover {
+      background: #1e40af;
+      color: #e0e7ef;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.13);
+    }
+    #toggle-dark {
+      background: #1a2233;
+      color: #fff;
+    }
+    #toggle-dark:hover {
+      background: #334155;
+      color: #e0e7ef;
+    }
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      min-width: 350px;
+      max-width: 420px;
+      flex: 1 1 350px;
+      transition: max-width 0.3s, min-width 0.3s;
+    }
+    .input-area.collapsed {
+      display: none;
+    }
+    textarea {
+      width: 100%;
+      height: 445px;
+      font-size: 1rem;
+      padding: 1.1rem;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      background: #f8fafc;
+      box-shadow: 0 1px 4px rgba(30,41,59,0.04);
+      resize: vertical;
+      color: #1a2233;
+      transition: border 0.2s;
+    }
+    textarea:focus {
+      outline: none;
+      border: 1.5px solid #2563eb;
+      background: #fff;
+    }
+    .preview {
+      flex: 2 1 0;
+      min-width: 0;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e0e7ef 100%);
+      border-radius: 14px;
+      border: 1.5px solid #cbd5e1;
+      padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(30,41,59,0.07);
+      overflow: auto;
+      min-height: 400px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      transition: background 0.2s, border 0.2s, flex 0.3s;
+    }
+    .preview svg {
+      max-width: 100%;
+      height: auto;
+      background: none;
+      border-radius: 8px;
+    }
+    .card.script-collapsed .preview {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
+    }
+    @media (max-width: 900px) {
+      .controls-panel {
+        flex-direction: column;
+        margin-bottom: 1rem;
+      }
+      .card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1.2rem 0.7rem;
+        gap: 1.2rem;
+        min-height: 0;
+      }
+      .input-area, .preview {
+        width: 100%;
+        min-width: 0;
+      }
+      .modal-content svg {
+        max-width: 95vw;
+        max-height: 60vh;
+      }
+    }
+    footer {
+      margin-top: auto;
+      padding: 1.2rem 0 1.5rem 0;
+      color: #7b8794;
+      font-size: 1rem;
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+    /* Dark mode styles */
+    body.dark {
+      background: linear-gradient(135deg, #181a1b 0%, #23272f 100%);
+      color: #e0e7ef;
+    }
+    body.dark header {
+      background: #23272f;
+      color: #e0e7ef;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+    body.dark .card {
+      background: #23272f;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+    }
+    body.dark textarea {
+      background: #181a1b;
+      color: #e0e7ef;
+      border: 1.5px solid #334155;
+    }
+    body.dark textarea:focus {
+      background: #23272f;
+      border: 1.5px solid #2563eb;
+    }
+    body.dark .preview {
+      background: linear-gradient(135deg, #23272f 0%, #181a1b 100%);
+      border: 1.5px solid #334155;
+    }
+    body.dark footer {
+      color: #7b8794;
+    }
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(30,41,59,0.85);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .modal-content {
+      background: #fff;
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      max-height: none;
+      border-radius: 0;
+      padding: 0;
+      overflow: auto;
+      position: relative;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    #modal-diagram {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+    }
+    #modal-diagram svg {
+      display: block;
+      width: 95vw;
+      height: 95vh;
+      max-width: 95vw;
+      max-height: 95vh;
+      margin: auto;
+      background: none;
+      border-radius: 0;
+    }
+    .close-modal {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 1100;
+    }
+    .close-modal:hover {
+      background: #1e40af;
+    }
+    body.dark .modal-content {
+      background: #23272f;
+      color: #e0e7ef;
+    }
+    body.dark .modal-overlay {
+      background: rgba(20,23,30,0.92);
+    }
+    body.dark .close-modal {
+      background: #1a2233;
+      color: #fff;
+    }
+    body.dark .close-modal:hover {
+      background: #334155;
+    }
+    @media (max-width: 900px) {
+      #modal-diagram svg {
+        width: 98vw;
+        height: 80vh;
+        max-width: 98vw;
+        max-height: 80vh;
+      }
+      .close-modal {
+        top: 1rem;
+        right: 1rem;
+      }
+    }
+    .prompt-input {
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1.5px solid #cbd5e1;
+      margin-right: 0.7rem;
+      min-width: 320px;
+      max-width: 400px;
+      width: 30vw;
+      background: #fff;
+      color: #1a2233;
+      box-shadow: 0 1px 4px rgba(30,41,59,0.04);
+      transition: border 0.2s;
+    }
+    .prompt-input:focus {
+      outline: none;
+      border: 1.5px solid #2563eb;
+      background: #f8fafc;
+    }
+    #generate-btn {
+      background: #059669;
+      color: #fff;
+      margin-right: 1.5rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      padding: 0.6rem 1.3rem;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.08);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #generate-btn:hover {
+      background: #047857;
+    }
+    #generate-btn[disabled] {
+      background: #a7f3d0;
+      color: #065f46;
+      cursor: not-allowed;
+    }
+    @media (max-width: 900px) {
+      .controls-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .prompt-input {
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 0.7rem;
+        margin-right: 0;
+      }
+      #generate-btn {
+        margin-right: 0;
+        margin-bottom: 0.7rem;
+      }
+      .controls-panel {
+        flex-direction: column;
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mermaid Live Diagram Preview</h1>
+    <p>Paste your Mermaid script and see a beautiful live preview. Download as SVG or PNG. Toggle dark mode for comfort.</p>
+  </header>
+  <div class="controls-panel">
+    <input id="prompt-input" class="prompt-input" type="text" placeholder="Describe your diagram (e.g. 'A flowchart for a login process')" />
+    <button id="generate-btn">Generate Diagram</button>
+    <button id="configure-key-btn">Configure Key</button>
+    <div class="controls">
+      <button id="download-svg">Download as SVG</button>
+      <button id="preview-full">Preview</button>
+      <button id="toggle-script">Hide Script</button>
+      <button id="toggle-dark">Toggle Dark Mode</button>
+    </div>
+  </div>
+  <div class="card" id="main-card">
+    <div class="input-area" id="input-area">
+      <textarea id="mermaid-input" placeholder="Paste your Mermaid script here...">
+
+  gitGraph
+    commit id: "Start"
+    branch develop
+    checkout develop
+    commit id: "Dev work"
+    commit id: "More dev work"
+    checkout main
+    commit id: "Release v1.0.0"
+    branch hotfix-bugfix
+    checkout hotfix-bugfix
+    commit id: "Critical fix"
+    checkout main
+    merge hotfix-bugfix
+    commit id: "Release v1.0.1"
+    checkout develop
+    merge hotfix-bugfix
+
+      </textarea>
+    </div>
+    <div class="preview" id="mermaid-preview">
+      <!-- Mermaid diagram will render here -->
+    </div>
+  </div>
+  <div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <button id="close-modal" class="close-modal">&times;</button>
+      <div id="modal-diagram"></div>
+    </div>
+  </div>
+  <div id="key-modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal-content" style="max-width: 400px; min-width: 320px;">
+      <button id="close-key-modal" class="close-modal">&times;</button>
+      <h2 style="margin-top:0; font-size:1.3rem;">Configure OpenAI API Key</h2>
+      <input id="key-input" type="password" placeholder="sk-..." style="width:100%;padding:0.7rem 1rem;font-size:1rem;border-radius:8px;border:1.5px solid #cbd5e1;margin-bottom:1.2rem;" />
+      <button id="save-key-btn" style="width:100%;background:#059669;">Save Key</button>
+      <p style="font-size:0.95rem;color:#888;margin-top:1.2rem;">Your key is stored only in your browser (localStorage).</p>
+    </div>
+  </div>
+  <footer>
+    &copy; 2024 Mermaid Live Preview &mdash; Powered by <a href="https://mermaid-js.github.io/mermaid/#/" style="color:#2563eb;text-decoration:none;" target="_blank">Mermaid.js</a>
+  </footer>
+  <script type="module">
+    const textarea = document.getElementById('mermaid-input');
+    const preview = document.getElementById('mermaid-preview');
+    const downloadBtn = document.getElementById('download-svg');
+    const darkBtn = document.getElementById('toggle-dark');
+    const body = document.body;
+    const previewFullBtn = document.getElementById('preview-full');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalDiagram = document.getElementById('modal-diagram');
+    const closeModalBtn = document.getElementById('close-modal');
+    const toggleScriptBtn = document.getElementById('toggle-script');
+    const inputArea = document.getElementById('input-area');
+    const mainCard = document.getElementById('main-card');
+    const promptInput = document.getElementById('prompt-input');
+    const generateBtn = document.getElementById('generate-btn');
+    const configureKeyBtn = document.getElementById('configure-key-btn');
+    const keyModalOverlay = document.getElementById('key-modal-overlay');
+    const closeKeyModalBtn = document.getElementById('close-key-modal');
+    const keyInput = document.getElementById('key-input');
+    const saveKeyBtn = document.getElementById('save-key-btn');
+
+    let currentSVG = '';
+    let darkMode = false;
+    let mermaidTheme = 'default';
+
+    async function renderMermaid(code) {
+      if (!code.trim()) {
+        preview.innerHTML = '';
+        currentSVG = '';
+        return;
+      }
+      try {
+        preview.innerHTML = '';
+        const id = 'mermaid-diagram-' + Date.now();
+        window.mermaid.initialize({ startOnLoad: false, theme: mermaidTheme });
+        const { svg } = await window.mermaid.render(id, code);
+        preview.innerHTML = svg;
+        currentSVG = svg;
+      } catch (err) {
+        preview.innerHTML = `<div style='color: #b00; font-weight: bold;'>Error rendering diagram:<br>${err.message}</div>`;
+        currentSVG = '';
+      }
+    }
+
+    textarea.addEventListener('input', (e) => {
+      renderMermaid(e.target.value);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!currentSVG) return;
+      const blob = new Blob([currentSVG], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'diagram.svg';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    });
+
+    darkBtn.addEventListener('click', () => {
+      darkMode = !darkMode;
+      if (darkMode) {
+        body.classList.add('dark');
+        darkBtn.textContent = '☀️ Light Mode';
+        mermaidTheme = 'dark';
+      } else {
+        body.classList.remove('dark');
+        darkBtn.textContent = '🌙 Dark Mode';
+        mermaidTheme = 'default';
+      }
+      renderMermaid(textarea.value);
+    });
+
+    previewFullBtn.addEventListener('click', () => {
+      if (!currentSVG) return;
+      modalDiagram.innerHTML = currentSVG;
+      modalOverlay.style.display = 'flex';
+    });
+    closeModalBtn.addEventListener('click', () => {
+      modalOverlay.style.display = 'none';
+      modalDiagram.innerHTML = '';
+    });
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+        modalDiagram.innerHTML = '';
+      }
+    });
+    toggleScriptBtn.addEventListener('click', () => {
+      const collapsed = inputArea.classList.toggle('collapsed');
+      mainCard.classList.toggle('script-collapsed', collapsed);
+      toggleScriptBtn.textContent = collapsed ? 'Show Script' : 'Hide Script';
+    });
+
+    function getOpenAIKey() {
+      return localStorage.getItem('openai_api_key') || '';
+    }
+    function setOpenAIKey(key) {
+      if (key) localStorage.setItem('openai_api_key', key);
+    }
+    function showKeyModal() {
+      keyInput.value = getOpenAIKey();
+      keyModalOverlay.style.display = 'flex';
+      setTimeout(() => keyInput.focus(), 100);
+    }
+    function hideKeyModal() {
+      keyModalOverlay.style.display = 'none';
+    }
+    configureKeyBtn.addEventListener('click', showKeyModal);
+    closeKeyModalBtn.addEventListener('click', hideKeyModal);
+    keyModalOverlay.addEventListener('click', (e) => {
+      if (e.target === keyModalOverlay) hideKeyModal();
+    });
+    saveKeyBtn.addEventListener('click', () => {
+      const key = keyInput.value.trim();
+      if (!key.startsWith('sk-')) {
+        keyInput.focus();
+        keyInput.style.border = '1.5px solid #b91c1c';
+        setTimeout(() => keyInput.style.border = '', 1200);
+        return;
+      }
+      setOpenAIKey(key);
+      hideKeyModal();
+    });
+
+    // === OpenAI API integration ===
+    async function generateMermaidFromPrompt(prompt) {
+      const OPENAI_API_KEY = getOpenAIKey();
+      if (!OPENAI_API_KEY) {
+        showKeyModal();
+        throw new Error('Please configure your OpenAI API key.');
+      }
+      const systemPrompt = 'You are a helpful assistant that generates only valid Mermaid diagram scripts. Do not include explanations or markdown, just the script.';
+      const userPrompt = `Generate a Mermaid diagram script for: ${prompt}`;
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 500,
+          temperature: 0.2
+        })
+      });
+      if (!res.ok) {
+        throw new Error('OpenAI API error: ' + (await res.text()));
+      }
+      const data = await res.json();
+      let script = data.choices[0].message.content.trim();
+      // Remove Markdown code block if present
+      if (script.startsWith('```')) {
+        script = script.replace(/^```(?:mermaid)?\s*/i, '').replace(/```\s*$/, '');
+      }
+      return script.trim();
+    }
+
+    generateBtn.addEventListener('click', async () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        promptInput.focus();
+        return;
+      }
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+      try {
+        const script = await generateMermaidFromPrompt(prompt);
+        if (script) {
+          textarea.value = script;
+          renderMermaid(script);
+        }
+      } catch (err) {
+        alert('Failed to generate diagram: ' + err.message);
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate Diagram';
+      }
+    });
+
+    // Initial render
+    renderMermaid(textarea.value);
+  </script>
+</body>
+</html> 
